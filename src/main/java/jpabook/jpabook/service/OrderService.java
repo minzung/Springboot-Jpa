@@ -1,50 +1,42 @@
 package jpabook.jpabook.service;
 
-import jpabook.jpabook.domain.Delivery;
-import jpabook.jpabook.domain.Member;
-import jpabook.jpabook.domain.Order;
-import jpabook.jpabook.domain.OrderItem;
+import jpabook.jpabook.domain.*;
 import jpabook.jpabook.domain.item.Item;
 import jpabook.jpabook.repository.ItemRepository;
 import jpabook.jpabook.repository.MemberRepository;
 import jpabook.jpabook.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class OrderService {
-
-    private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
+    private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
 
     /**
      * 주문
-     */
+    */
     @Transactional
-    public Long order(Long memberId, Long itemId, int count){
-
-        // 엔티티 조회
+    public Long order(Long memberId, Long itemId, int count) {
+        //엔티티 조회
         Member member = memberRepository.findOne(memberId);
         Item item = itemRepository.findOne(itemId);
 
-        // 배송정보 생성
+        //배송정보 생성
         Delivery delivery = new Delivery();
         delivery.setAddress(member.getAddress());
+        delivery.setStatus(DeliveryStatus.READY);
 
-        // 주문상품 생성
-        OrderItem orderItem = OrderItem.createOrder(item, item.getPrice(), count);
+        //주문상품 생성
+        OrderItem orderItem = OrderItem.createOrderItem(item, item.getPrice(), count);
 
-        // 주문 생성
+        //주문 생성
         Order order = Order.createOrder(member, delivery, orderItem);
 
-        // 주문 저장
+        //주문 저장
         orderRepository.save(order);
 
         return order.getId();
@@ -54,20 +46,19 @@ public class OrderService {
      * 주문 취소
      */
     @Transactional
-    public void cancel(Long orderId){
-        // 주문 엔티티 조회
+    public void cancelOrder(Long orderId) {
+        //주문 엔티티 조회
         Order order = orderRepository.findOne(orderId);
 
-        // 주문 취소
+        //주문 취소
         order.cancel();
     }
-
     /**
      * 주문 검색
      */
 /*
-    public List<Order> findOrders(OrderSearch orderSearch){
-        return orderRepository.findAll(orderSearch)
-    }
+     public List<Order> findOrders(OrderSearch orderSearch) {
+     return orderRepository.findAll(orderSearch);
+     }
 */
 }
